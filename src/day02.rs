@@ -1,4 +1,5 @@
 use std::fs;
+use std::io;
 use std::str::FromStr;
 
 fn read_data() -> std::string::String {
@@ -29,6 +30,30 @@ fn numbers_to_opcodes(numbers: Vec<i32>) -> Vec<[i32; 5]> {
     }
 
     return vec;
+}
+
+pub fn run_trial() {
+    let mut input = String::new();
+    let noun: i32;
+    let verb: i32;
+
+    println!("What's the noun?");
+    io::stdin().read_line(&mut input).expect("need a noun");
+
+    noun = input.trim().parse().expect("alas");
+
+    println!("What's the verb?");
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).expect("need a noun");
+
+    verb = input.trim().parse().expect("alas");
+
+    let mut memory = convert_to_numbers(read_data());
+    memory[1] = noun;
+    memory[2] = verb;
+
+    let output = execute(memory.clone());
+    println!("{} = {}", noun * 100 + verb, output[0]);
 }
 
 fn execute(opcodes: Vec<i32>) -> Vec<i32> {
@@ -98,8 +123,8 @@ mod tests {
         let output3 = vec![2, 4, 4, 5, 99, 9801];
         assert_eq!(execute(input3), output3);
 
-        let input4 = vec![  1, 1, 1, 4, 99, 5, 6, 0, 99];
-        let output4 = vec![30, 1, 1, 4,  2, 5, 6, 0, 99];
+        let input4 = vec![1, 1, 1, 4, 99, 5, 6, 0, 99];
+        let output4 = vec![30, 1, 1, 4, 2, 5, 6, 0, 99];
         assert_eq!(execute(input4), output4);
     }
 
@@ -109,6 +134,7 @@ mod tests {
         input[1] = 12;
         input[2] = 2;
         let output = execute(input.clone());
+        // assert_eq!(42, output[0]);
         assert!(42 != output[0]);
     }
 }
