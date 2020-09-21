@@ -1,4 +1,8 @@
+extern crate regex;
+
+use regex::Regex;
 use std::collections::{HashMap, HashSet};
+use std::str::FromStr;
 
 #[derive(Debug)]
 pub struct Circuit {
@@ -33,26 +37,23 @@ impl Circuit {
 
         match set {
             None => false,
-            Some(set) => {
-                match set.get(&y) {
-                    None => false,
-                    _ => true
-                }
-            }
+            Some(set) => match set.get(&y) {
+                None => false,
+                _ => true,
+            },
         }
     }
 
     fn update(&mut self) {
         match self.wire.get(&self.x) {
-            Some(_) => {},
+            Some(_) => {}
             None => {
                 let mut new_set = HashSet::<i32>::new();
                 new_set.insert(self.y);
                 self.wire.insert(self.x, new_set);
-            },
+            }
         }
     }
-
 }
 
 pub fn new_circuit() -> Circuit {
@@ -61,6 +62,31 @@ pub fn new_circuit() -> Circuit {
         y: 0,
         wire: HashMap::new(),
     }
+}
+
+enum Move {
+    Left(u32),
+    Right(u32),
+    Up(u32),
+    Down(u32),
+}
+
+fn parse_move(foo: &str) -> Move {
+    let re = Regex::new(r"^([LRUD])(\d+)$").unwrap();
+    let caps = re.captures(foo).unwrap();
+    let dir = caps.get(1).unwrap().as_str();
+    let distance = u32::from_str(caps.get(2).unwrap().as_str()).unwrap();
+    match dir {
+        "L" => Move::Left(distance),
+        "R" => Move::Right(distance),
+        "U" => Move::Up(distance),
+        "D" => Move::Down(distance),
+        _ => panic!("What is {}", dir),
+    }
+}
+
+fn split_moves(sequence: &str) -> Vec<&str> {
+    sequence.split(",").collect::<Vec<&str>>()
 }
 
 #[cfg(test)]
@@ -116,5 +142,19 @@ mod tests {
         assert_eq!(circuit.at(0, 0), false);
         assert_eq!(circuit.at(-1, 0), false);
         assert_eq!(circuit.at(1, -1), false);
+    }
+
+    #[test]
+    fn test_parse_move() {
+        assert!(matches!(parse_move("R75"), Move::Right(75)));
+        assert!(matches!(parse_move("L1"), Move::Left(1)));
+        assert!(matches!(parse_move("U11233"), Move::Up(11233)));
+        assert!(matches!(parse_move("D0"), Move::Down(0)));
+    }
+
+    #[test]
+    fn test_split_moves() {
+        assert_eq!(split_moves("R75"), vec!["R75"]);
+        assert_eq!(split_moves("R75,L32"), vec!["R75", "L32"]);
     }
 }
